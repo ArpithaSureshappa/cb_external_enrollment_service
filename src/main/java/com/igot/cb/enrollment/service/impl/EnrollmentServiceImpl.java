@@ -1261,8 +1261,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         log.info("EnrollmentService::readByUserIdAndCourseIdV2:inside the method");
         SBApiResponse response = transformUtility.createDefaultResponse(Constants.CIOS_ENROLLMENT_READ_COURSEID);
         try {
-            String userId = "3348dc18-9980-4850-8073-75e18639140d";
-//            String userId = accessTokenValidator.verifyUserToken(token);
+            String userId = accessTokenValidator.verifyUserToken(token);
             if (StringUtils.isBlank(userId) || userId.equalsIgnoreCase(Constants.UNAUTHORIZED)) {
                 response.getParams().setMsg(Constants.USER_ID_DOESNT_EXIST);
                 response.getParams().setStatus(Constants.FAILED);
