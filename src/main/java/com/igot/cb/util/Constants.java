@@ -176,6 +176,8 @@ public class Constants {
     public static final String ENROLLED_WITH_KARMA_DEDUCTION = "You have been successfully enrolled into \"%s\", and \"%d\" Karma Coin has been deducted from your Karma Wallet.";
     public static final String ENROLLED_WITHOUT_KARMA_DEDUCTION = "You have been successfully enrolled into \"%s\".";
     public static final String NAME = "name";
+    public static final String PENDING_ENROLMENT_KEY_PREFIX = "pendingEnrolment_";
+    public static final String ISSUED_BADGES = "issued_badges";
 
     private Constants() {
     }

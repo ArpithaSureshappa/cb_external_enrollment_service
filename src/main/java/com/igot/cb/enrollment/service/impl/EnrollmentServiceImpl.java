@@ -1255,4 +1255,74 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         log.info("User {} karmaPointsExcemption evaluation result: {}", userAttributes.get(Constants.USER), isExempt);
         return isExempt;
     }
+
+    @Override
+    public SBApiResponse readByUserIdAndCourseIdV2(String courseid, String token) {
+        log.info("EnrollmentService::readByUserIdAndCourseIdV2:inside the method");
+        SBApiResponse response = transformUtility.createDefaultResponse(Constants.CIOS_ENROLLMENT_READ_COURSEID);
+        try {
+            String userId = "3348dc18-9980-4850-8073-75e18639140d";
+//            String userId = accessTokenValidator.verifyUserToken(token);
+            if (StringUtils.isBlank(userId) || userId.equalsIgnoreCase(Constants.UNAUTHORIZED)) {
+                response.getParams().setMsg(Constants.USER_ID_DOESNT_EXIST);
+                response.getParams().setStatus(Constants.FAILED);
+                response.setResponseCode(HttpStatus.BAD_REQUEST);
+                return response;
+            }
+
+            String pendingKey = Constants.PENDING_ENROLMENT_KEY_PREFIX + userId + "_" + courseid;
+            String pendingStatus = cacheService.getCache(pendingKey, cbServerProperties.getRedisIndex());
+            if (StringUtils.isNotBlank(pendingStatus)) {
+                Map<String, Object> result = new HashMap<>();
+                result.put(Constants.COMPLETION_PERCENTAGE, 0);
+                result.put(Constants.COMPLETED_ON, null);
+                result.put(Constants.PROGRESS, 0);
+                result.put(Constants.ISSUED_BADGES, new ArrayList<>());
+                result.put(Constants.ADDITIONAL_PROPERTIES, "{}");
+                result.put(Constants.PARTNER_ID_REQ, null);
+                result.put(Constants.UPDATED_ON, Instant.now().toString());
+                result.put("userid", userId);
+                result.put("courseid", courseid);
+                result.put(Constants.ENROLLED_DATE, null);
+                result.put(Constants.ISSUED_CERTIFICATES, new ArrayList<>());
+                result.put(Constants.STATUS, CiosEnrolmentStatus.PENDING.getCode());
+                response.setResult(result);
+                response.setResponseCode(HttpStatus.OK);
+                return response;
+            }
+
+            Map<String, Object> propertyMap = new HashMap<>();
+            propertyMap.put("userid", userId);
+            propertyMap.put("courseid", courseid);
+            List<Map<String, Object>> userEnrollmentList = cassandraOperation.getRecordsByPropertiesWithoutFiltering(
+                    Constants.KEYSPACE_SUNBIRD_COURSES,
+                    Constants.TABLE_USER_EXTERNAL_ENROLMENTS,
+                    propertyMap,
+                    null,
+                    1
+            );
+            if (!userEnrollmentList.isEmpty()) {
+                for (Map<String, Object> enrollment : userEnrollmentList) {
+                    if (!enrollment.isEmpty()) {
+                        response.setResponseCode(HttpStatus.OK);
+                        response.setResult(enrollment);
+                    } else {
+                        response.getParams().setMsg("courseId is not matching");
+                        response.getParams().setStatus(Constants.FAILED);
+                        response.setResponseCode(HttpStatus.BAD_REQUEST);
+                        return response;
+                    }
+                }
+            } else {
+                response.getParams().setMsg("User not enrolled into the course");
+                response.getParams().setStatus(Constants.SUCCESS);
+                response.setResponseCode(HttpStatus.OK);
+                return response;
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("error while processing", e);
+            throw new CustomException(Constants.ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
