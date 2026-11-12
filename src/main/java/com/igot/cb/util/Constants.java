@@ -217,6 +217,15 @@ public class Constants {
     public static final String EVENT_COINS_REDEEMED = "coinsRedeemed";
     public static final String CREDIT_OPERATION = "CREDIT";
     public static final String KARMA_COINS = "karmaCoins";
+    public static final String LTI_CONFIGURATION = "ltiConfiguration";
+    public static final String OIDC_LOGIN_INITIATION_URL = "oidcLoginInitiationUrl";
+    public static final String LTI_CLIENT_ID = "clientId";
+    public static final String REDIRECT_LAUNCH_URL = "redirectLaunchUrl";
+    public static final String DEPLOYMENT_ID = "deploymentId";
+    public static final String TOOL_ISSUER = "toolIssuer";
+    public static final String LTI_COURSE_LAUNCH_HINT_PREFIX = "courseLaunch:";
+    public static final String USER_NOT_ENROLLED_MESSAGE = "User is not enrolled in this course";
+    public static final String LTI_LAUNCH_URL = "ltiLaunchUrl";
 
     private Constants() {
     }
