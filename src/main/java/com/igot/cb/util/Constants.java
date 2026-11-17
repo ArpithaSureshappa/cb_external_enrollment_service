@@ -228,6 +228,12 @@ public class Constants {
     public static final String LTI_COURSE_LAUNCH_HINT_PREFIX = "courseLaunch:";
     public static final String USER_NOT_ENROLLED_MESSAGE = "User is not enrolled in this course, please enroll to access the course";
     public static final String LTI_LAUNCH_URL = "ltiLaunchUrl";
+    public static final String LTI_PARAM_ISS = "iss";
+    public static final String LTI_PARAM_LOGIN_HINT = "login_hint";
+    public static final String LTI_PARAM_TARGET_LINK_URI = "target_link_uri";
+    public static final String LTI_PARAM_CLIENT_ID = "client_id";
+    public static final String LTI_PARAM_DEPLOYMENT_ID = "lti_deployment_id";
+    public static final String LTI_PARAM_MESSAGE_HINT = "lti_message_hint";
 
     private Constants() {
     }

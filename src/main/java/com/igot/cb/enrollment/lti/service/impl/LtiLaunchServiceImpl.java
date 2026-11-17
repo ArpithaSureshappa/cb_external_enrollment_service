@@ -63,12 +63,12 @@ public class LtiLaunchServiceImpl implements LtiLaunchService {
         }
 
         String launchUrl = UriComponentsBuilder.fromUriString(oidcLoginInitiationUrl)
-                .queryParam("iss", issuer)
-                .queryParam("login_hint", userId)
-                .queryParam("target_link_uri", targetLinkUri)
-                .queryParam("client_id", clientId)
-                .queryParam("lti_deployment_id", deploymentId)
-                .queryParam("lti_message_hint", Constants.LTI_COURSE_LAUNCH_HINT_PREFIX + courseId)
+                .queryParam(Constants.LTI_PARAM_ISS, issuer)
+                .queryParam(Constants.LTI_PARAM_LOGIN_HINT, userId)
+                .queryParam(Constants.LTI_PARAM_TARGET_LINK_URI, targetLinkUri)
+                .queryParam(Constants.LTI_PARAM_CLIENT_ID, clientId)
+                .queryParam(Constants.LTI_PARAM_DEPLOYMENT_ID, deploymentId)
+                .queryParam(Constants.LTI_PARAM_MESSAGE_HINT, Constants.LTI_COURSE_LAUNCH_HINT_PREFIX + courseId)
                 .build()
                 .encode()
                 .toUriString();
