@@ -532,6 +532,32 @@ public class TransformUtility {
         return value == null ? 0L : ((Number) value).longValue();
     }
 
+    public JsonNode callContentPartnerReadByPartnerIdApi(String partnerId) {
+        log.info("KafkaConsumer :: callContentPartnerReadByPartnerIdApi");
+        String url = cbServerProperties.getBaseUrl() + cbServerProperties.getContentPartnerReadbyPartnerIdApiUrl() + partnerId;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(Constants.ACCEPT, Constants.APPLICATION_JSON); // Indicate JSON response
+        headers.set(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<JsonNode> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                entity,
+                JsonNode.class
+        );
+        if (response.getStatusCode().is2xxSuccessful()) {
+            JsonNode jsonNode = response.getBody();
+            if (jsonNode != null && jsonNode.has(Constants.RESULT)) {
+                return jsonNode.path(Constants.RESULT);
+            } else {
+                log.error("Response body is null or missing 'result' field");
+                throw new CustomException(Constants.ERROR, "Invalid or null response body", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            log.error("Failed to retrieve externalId. Status code: {}", response.getStatusCode());
+            throw new CustomException(Constants.ERROR, "Failed to retrieve externalId", HttpStatus.BAD_REQUEST);
+        }
 
+    }
 
 }
