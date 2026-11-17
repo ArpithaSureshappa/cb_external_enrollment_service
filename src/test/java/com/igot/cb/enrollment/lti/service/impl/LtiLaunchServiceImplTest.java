@@ -118,6 +118,13 @@ class LtiLaunchServiceImplTest {
         return result;
     }
 
+    private JsonNode fullLtiConfigMissing(String fieldToBlank) {
+        ObjectNode result = (ObjectNode) fullLtiConfig();
+        ObjectNode ltiConfig = (ObjectNode) result.path(Constants.DATA).path(Constants.LTI_CONFIGURATION);
+        ltiConfig.put(fieldToBlank, "");
+        return result;
+    }
+
     @Test
     @DisplayName("Returns failure response as-is when token validation fails")
     void buildCourseRedirectLink_invalidToken_returnsFailure() {
@@ -191,6 +198,71 @@ class LtiLaunchServiceImplTest {
         result.set(Constants.DATA, data);
 
         when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID)).thenReturn(result);
+
+        SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getResponseCode());
+    }
+
+    @Test
+    @DisplayName("Only oidcLoginInitiationUrl blank -> BAD_REQUEST")
+    void buildCourseRedirectLink_onlyOidcLoginInitiationUrlBlank_returnsBadRequest() {
+        stubValidUser();
+        stubEnrolled(true);
+        when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID))
+                .thenReturn(fullLtiConfigMissing(Constants.OIDC_LOGIN_INITIATION_URL));
+
+        SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getResponseCode());
+    }
+
+    @Test
+    @DisplayName("Only clientId blank -> BAD_REQUEST")
+    void buildCourseRedirectLink_onlyClientIdBlank_returnsBadRequest() {
+        stubValidUser();
+        stubEnrolled(true);
+        when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID))
+                .thenReturn(fullLtiConfigMissing(Constants.LTI_CLIENT_ID));
+
+        SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getResponseCode());
+    }
+
+    @Test
+    @DisplayName("Only targetLinkUri (redirectLaunchUrl) blank -> BAD_REQUEST")
+    void buildCourseRedirectLink_onlyTargetLinkUriBlank_returnsBadRequest() {
+        stubValidUser();
+        stubEnrolled(true);
+        when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID))
+                .thenReturn(fullLtiConfigMissing(Constants.REDIRECT_LAUNCH_URL));
+
+        SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getResponseCode());
+    }
+
+    @Test
+    @DisplayName("Only deploymentId blank -> BAD_REQUEST")
+    void buildCourseRedirectLink_onlyDeploymentIdBlank_returnsBadRequest() {
+        stubValidUser();
+        stubEnrolled(true);
+        when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID))
+                .thenReturn(fullLtiConfigMissing(Constants.DEPLOYMENT_ID));
+
+        SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getResponseCode());
+    }
+
+    @Test
+    @DisplayName("Only toolIssuer blank -> BAD_REQUEST")
+    void buildCourseRedirectLink_onlyToolIssuerBlank_returnsBadRequest() {
+        stubValidUser();
+        stubEnrolled(true);
+        when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID))
+                .thenReturn(fullLtiConfigMissing(Constants.TOOL_ISSUER));
 
         SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
 

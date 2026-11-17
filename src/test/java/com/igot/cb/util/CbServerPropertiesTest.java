@@ -19,6 +19,7 @@ import org.springframework.test.context.TestPropertySource;
         "certificate.char.length=15",
         "content.partner.read.api.url=http://partner.url",
         "content.partner.readby.partnercode.api.url=http://partner.code.url",
+        "content.partner.readby.partnerid.api.url=http://partner.id.url",
         "spring.kafka.cornell.topic.name=user-progress-topic",
         "user.progress.send.from.partner.topic.name=user-partner-progress",
         "maximum.allowed.limit=500",
@@ -56,6 +57,7 @@ class CbServerPropertiesTest {
         assertEquals(15, properties.getCertificateCharLength());
         assertEquals("http://partner.url", properties.getContentPartnerReadApiUrl());
         assertEquals("http://partner.code.url", properties.getContentPartnerReadbyPartnerCodeApiUrl());
+        assertEquals("http://partner.id.url", properties.getContentPartnerReadbyPartnerIdApiUrl());
         assertEquals("user-progress-topic", properties.getUserProgressUpdateTopic());
         assertEquals("user-partner-progress", properties.getUserProgressSendFromPartner());
         assertEquals(500, properties.getMaximumAllowedLimit());

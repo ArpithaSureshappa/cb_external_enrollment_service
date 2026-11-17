@@ -162,6 +162,15 @@ public class TransformUtility {
     public JsonNode callContentPartnerReadByPartnerCodeApi(String partnerCode) {
         log.info("KafkaConsumer :: callContentPartnerReadByPartnerCodeApi");
         String url = cbServerProperties.getBaseUrl() + cbServerProperties.getContentPartnerReadbyPartnerCodeApiUrl() + partnerCode;
+        return fetchContentPartnerResult(url);
+    }
+
+    /**
+     * Shared by callContentPartnerReadByPartnerCodeApi and callContentPartnerReadByPartnerIdApi -
+     * both hit the same cb-pores-service response shape ({"result": {...}}), differing only in
+     * which path/identifier builds the URL.
+     */
+    private JsonNode fetchContentPartnerResult(String url) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(Constants.ACCEPT, Constants.APPLICATION_JSON); // Indicate JSON response
         headers.set(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
@@ -184,7 +193,6 @@ public class TransformUtility {
             log.error(Constants.FAILED_TO_RETRIEVE_EXTERNAL_ID_STATUS_CODE, response.getStatusCode());
             throw new CustomException(Constants.ERROR, "Failed to retrieve externalId", HttpStatus.BAD_REQUEST);
         }
-
     }
 
     /**
@@ -535,29 +543,7 @@ public class TransformUtility {
     public JsonNode callContentPartnerReadByPartnerIdApi(String partnerId) {
         log.info("KafkaConsumer :: callContentPartnerReadByPartnerIdApi");
         String url = cbServerProperties.getBaseUrl() + cbServerProperties.getContentPartnerReadbyPartnerIdApiUrl() + partnerId;
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(Constants.ACCEPT, Constants.APPLICATION_JSON); // Indicate JSON response
-        headers.set(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<JsonNode> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                JsonNode.class
-        );
-        if (response.getStatusCode().is2xxSuccessful()) {
-            JsonNode jsonNode = response.getBody();
-            if (jsonNode != null && jsonNode.has(Constants.RESULT)) {
-                return jsonNode.path(Constants.RESULT);
-            } else {
-                log.error(Constants.RESPONSE_BODY_NULL_OR_MISSING_RESULT);
-                throw new CustomException(Constants.ERROR, "Invalid or null response body", HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        } else {
-            log.error(Constants.FAILED_TO_RETRIEVE_EXTERNAL_ID_STATUS_CODE, response.getStatusCode());
-            throw new CustomException(Constants.ERROR, "Failed to retrieve externalId", HttpStatus.BAD_REQUEST);
-        }
-
+        return fetchContentPartnerResult(url);
     }
 
 }
