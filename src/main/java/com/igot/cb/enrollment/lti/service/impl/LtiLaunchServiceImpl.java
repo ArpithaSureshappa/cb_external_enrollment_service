@@ -2,7 +2,6 @@ package com.igot.cb.enrollment.lti.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.igot.cb.enrollment.lti.service.LtiLaunchService;
-import com.igot.cb.enrollment.service.EnrollmentService;
 import com.igot.cb.transactional.cassandrautils.CassandraOperation;
 import com.igot.cb.util.Constants;
 import com.igot.cb.util.TransformUtility;
@@ -38,7 +37,7 @@ public class LtiLaunchServiceImpl implements LtiLaunchService {
         if (StringUtils.isBlank(providerId) || StringUtils.isBlank(courseId)) {
             return transformUtility.buildFailedResponse(response, "providerId and courseId are mandatory", HttpStatus.BAD_REQUEST);
         }
-        if (isUserEnrolled(response, userId, courseId)) {
+        if (isUserEnrolled(userId, courseId)) {
             response.getParams().setStatus(Constants.SUCCESS);
             response.setResponseCode(HttpStatus.OK);
         } else {
@@ -80,7 +79,7 @@ public class LtiLaunchServiceImpl implements LtiLaunchService {
         return response;
     }
 
-    public boolean isUserEnrolled(SBApiResponse response, String userId, String courseId) {
+    public boolean isUserEnrolled(String userId, String courseId) {
         Map<String, Object> propertyMap = new HashMap<>();
         propertyMap.put(Constants.USER_ID, userId);
         propertyMap.put(Constants.COURSE_ID, courseId);
@@ -91,9 +90,6 @@ public class LtiLaunchServiceImpl implements LtiLaunchService {
                 null,
                 1
         );
-        if (!userEnrollmentList.isEmpty()) {
-            return true;
-        }
-        return false;
+        return !userEnrollmentList.isEmpty();
     }
 }

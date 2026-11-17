@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 /**
  * New, isolated LTI package under its own /cios-enroll/lti sub-path - does not touch the existing
  * /cios-enroll/v1/* enrollment APIs or their controller/service classes. Neither endpoint here

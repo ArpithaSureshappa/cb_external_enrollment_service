@@ -223,7 +223,7 @@ class LtiLaunchServiceImplTest {
     void isUserEnrolled_recordExists_returnsTrue() {
         stubEnrolled(true);
 
-        boolean enrolled = ltiLaunchService.isUserEnrolled(new SBApiResponse(), USER_ID, COURSE_ID);
+        boolean enrolled = ltiLaunchService.isUserEnrolled(USER_ID, COURSE_ID);
 
         assertTrue(enrolled);
     }
@@ -233,7 +233,7 @@ class LtiLaunchServiceImplTest {
     void isUserEnrolled_noRecord_returnsFalse() {
         stubEnrolled(false);
 
-        boolean enrolled = ltiLaunchService.isUserEnrolled(new SBApiResponse(), USER_ID, COURSE_ID);
+        boolean enrolled = ltiLaunchService.isUserEnrolled(USER_ID, COURSE_ID);
 
         assertFalse(enrolled);
     }
@@ -243,7 +243,7 @@ class LtiLaunchServiceImplTest {
     void isUserEnrolled_queriesWithExpectedProperties() {
         stubEnrolled(false);
 
-        ltiLaunchService.isUserEnrolled(new SBApiResponse(), USER_ID, COURSE_ID);
+        ltiLaunchService.isUserEnrolled(USER_ID, COURSE_ID);
 
         Map<String, Object> expectedProperties = new HashMap<>();
         expectedProperties.put(Constants.USER_ID, USER_ID);

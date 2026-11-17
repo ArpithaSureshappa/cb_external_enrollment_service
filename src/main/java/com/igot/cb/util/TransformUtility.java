@@ -177,11 +177,11 @@ public class TransformUtility {
             if (jsonNode != null && jsonNode.has(Constants.RESULT)) {
                 return jsonNode.path(Constants.RESULT);
             } else {
-                log.error("Response body is null or missing 'result' field");
+                log.error(Constants.RESPONSE_BODY_NULL_OR_MISSING_RESULT);
                 throw new CustomException(Constants.ERROR, "Invalid or null response body", HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else {
-            log.error("Failed to retrieve externalId. Status code: {}", response.getStatusCode());
+            log.error(Constants.FAILED_TO_RETRIEVE_EXTERNAL_ID_STATUS_CODE, response.getStatusCode());
             throw new CustomException(Constants.ERROR, "Failed to retrieve externalId", HttpStatus.BAD_REQUEST);
         }
 
@@ -329,11 +329,11 @@ public class TransformUtility {
                 if (jsonNode != null && jsonNode.has(Constants.RESULT)) {
                     return jsonNode.path(Constants.RESULT).path("userCourseEnrolmentInfo").path("karmaPoints").asLong(0);
                 } else {
-                    log.error("Response body is null or missing 'result' field");
+                    log.error(Constants.RESPONSE_BODY_NULL_OR_MISSING_RESULT);
                     throw new CustomException(Constants.ERROR, "Invalid or null response body", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             } else {
-                log.error("Failed to retrieve externalId. Status code: {}", response.getStatusCode());
+                log.error(Constants.FAILED_TO_RETRIEVE_EXTERNAL_ID_STATUS_CODE, response.getStatusCode());
                 throw new CustomException(Constants.ERROR, "Failed to retrieve externalId", HttpStatus.BAD_REQUEST);
             }
         }
@@ -550,11 +550,11 @@ public class TransformUtility {
             if (jsonNode != null && jsonNode.has(Constants.RESULT)) {
                 return jsonNode.path(Constants.RESULT);
             } else {
-                log.error("Response body is null or missing 'result' field");
+                log.error(Constants.RESPONSE_BODY_NULL_OR_MISSING_RESULT);
                 throw new CustomException(Constants.ERROR, "Invalid or null response body", HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else {
-            log.error("Failed to retrieve externalId. Status code: {}", response.getStatusCode());
+            log.error(Constants.FAILED_TO_RETRIEVE_EXTERNAL_ID_STATUS_CODE, response.getStatusCode());
             throw new CustomException(Constants.ERROR, "Failed to retrieve externalId", HttpStatus.BAD_REQUEST);
         }
 

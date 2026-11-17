@@ -223,6 +223,8 @@ public class Constants {
     public static final String REDIRECT_LAUNCH_URL = "redirectLaunchUrl";
     public static final String DEPLOYMENT_ID = "deploymentId";
     public static final String TOOL_ISSUER = "toolIssuer";
+    public static final String RESPONSE_BODY_NULL_OR_MISSING_RESULT = "Response body is null or missing 'result' field";
+    public static final String FAILED_TO_RETRIEVE_EXTERNAL_ID_STATUS_CODE = "Failed to retrieve externalId. Status code: {}";
     public static final String LTI_COURSE_LAUNCH_HINT_PREFIX = "courseLaunch:";
     public static final String USER_NOT_ENROLLED_MESSAGE = "User is not enrolled in this course, please enroll to access the course";
     public static final String LTI_LAUNCH_URL = "ltiLaunchUrl";
