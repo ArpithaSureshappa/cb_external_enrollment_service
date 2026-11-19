@@ -29,6 +29,7 @@ import java.util.Map;
 public class LtiLaunchServiceImpl implements LtiLaunchService {
     private final CassandraOperation cassandraOperation;
     private final TransformUtility transformUtility;
+    private final ObjectMapper objectMapper;
 
     @Override
     public SBApiResponse buildCourseRedirectLink(String providerId, String courseId, String token) {
@@ -82,11 +83,11 @@ public class LtiLaunchServiceImpl implements LtiLaunchService {
             return transformUtility.buildFailedResponse(response, "LTI custom claim configuration missing for course: " + courseId, HttpStatus.BAD_REQUEST);
         }
 
-        Map<String, Object> messageHintFields = new ObjectMapper().convertValue(providerCustomClaim, LinkedHashMap.class);
+        Map<String, Object> messageHintFields = objectMapper.convertValue(providerCustomClaim, LinkedHashMap.class);
         messageHintFields.put("partnerCode", deploymentId);
         String ltiMessageHint;
         try {
-            ltiMessageHint = new ObjectMapper().writeValueAsString(messageHintFields);
+            ltiMessageHint = objectMapper.writeValueAsString(messageHintFields);
         } catch (JsonProcessingException e) {
             log.error("LtiLaunchServiceImpl::buildCourseRedirectLink: failed to build lti_message_hint JSON for courseId {}", courseId, e);
             return transformUtility.buildFailedResponse(response, "Failed to build LTI launch link", HttpStatus.INTERNAL_SERVER_ERROR);

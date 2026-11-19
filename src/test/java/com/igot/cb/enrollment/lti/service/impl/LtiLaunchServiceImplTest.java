@@ -11,14 +11,17 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -30,14 +33,15 @@ import com.igot.cb.util.dto.SunbirdApiRespParam;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 
 class LtiLaunchServiceImplTest {
 
-    @InjectMocks
+    // Not @InjectMocks: the service's ObjectMapper dependency is a real instance here (so JSON
+    // building/conversion behaves normally for every test) except the one test that specifically
+    // needs it mocked to exercise the otherwise-unreachable JsonProcessingException catch block.
     private LtiLaunchServiceImpl ltiLaunchService;
 
     @Mock
@@ -56,6 +60,7 @@ class LtiLaunchServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        ltiLaunchService = new LtiLaunchServiceImpl(cassandraOperation, transformUtility, new ObjectMapper());
 
         lenient().when(transformUtility.createDefaultResponse(anyString())).thenAnswer(invocation -> {
             SBApiResponse response = new SBApiResponse();
@@ -329,6 +334,71 @@ class LtiLaunchServiceImplTest {
         SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getResponseCode());
+    }
+
+    @Test
+    @DisplayName("Course content read returns null -> BAD_REQUEST")
+    void buildCourseRedirectLink_courseContentNull_returnsBadRequest() {
+        stubValidUser();
+        stubEnrolled(true);
+        when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID)).thenReturn(fullLtiConfig());
+        when(transformUtility.callCiosContentReadAPi(COURSE_ID)).thenReturn(null);
+
+        SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getResponseCode());
+    }
+
+    @Test
+    @DisplayName("Course content's providerCustomClaim is explicit JSON null -> BAD_REQUEST")
+    void buildCourseRedirectLink_providerCustomClaimIsNull_returnsBadRequest() {
+        stubValidUser();
+        stubEnrolled(true);
+        when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID)).thenReturn(fullLtiConfig());
+        ObjectNode content = mapper.createObjectNode();
+        content.set(Constants.PROVIDER_CUSTOM_CLAIM, mapper.nullNode());
+        when(transformUtility.callCiosContentReadAPi(COURSE_ID)).thenReturn(content);
+
+        SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getResponseCode());
+    }
+
+    @Test
+    @DisplayName("Course content's providerCustomClaim is not a JSON object -> BAD_REQUEST")
+    void buildCourseRedirectLink_providerCustomClaimNotObject_returnsBadRequest() {
+        stubValidUser();
+        stubEnrolled(true);
+        when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID)).thenReturn(fullLtiConfig());
+        ObjectNode content = mapper.createObjectNode();
+        content.set(Constants.PROVIDER_CUSTOM_CLAIM, mapper.createArrayNode().add("not-an-object"));
+        when(transformUtility.callCiosContentReadAPi(COURSE_ID)).thenReturn(content);
+
+        SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getResponseCode());
+    }
+
+    @Test
+    @DisplayName("Building lti_message_hint JSON fails -> INTERNAL_SERVER_ERROR")
+    void buildCourseRedirectLink_jsonProcessingFails_returnsInternalServerError() throws JsonProcessingException {
+        stubValidUser();
+        stubEnrolled(true);
+        when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID)).thenReturn(fullLtiConfig());
+        when(transformUtility.callCiosContentReadAPi(COURSE_ID))
+                .thenReturn(courseContentWithCustomClaim("602ba6d8-da5e-4ffa-8ed3-ffeab3211ebe"));
+
+        ObjectMapper mockMapper = mock(ObjectMapper.class);
+        LinkedHashMap convertedMap = new LinkedHashMap();
+        convertedMap.put("id", "602ba6d8-da5e-4ffa-8ed3-ffeab3211ebe");
+        when(mockMapper.convertValue(any(JsonNode.class), eq(LinkedHashMap.class))).thenReturn(convertedMap);
+        when(mockMapper.writeValueAsString(any())).thenThrow(mock(JsonProcessingException.class));
+        LtiLaunchServiceImpl serviceWithMockMapper =
+                new LtiLaunchServiceImpl(cassandraOperation, transformUtility, mockMapper);
+
+        SBApiResponse response = serviceWithMockMapper.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getResponseCode());
     }
 
     @Test
