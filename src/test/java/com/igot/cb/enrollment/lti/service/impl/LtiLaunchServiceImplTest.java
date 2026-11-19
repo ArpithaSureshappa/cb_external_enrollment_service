@@ -118,6 +118,15 @@ class LtiLaunchServiceImplTest {
         return result;
     }
 
+    private JsonNode courseContentWithCustomClaim(String customClaimId) {
+        ObjectNode providerCustomClaim = mapper.createObjectNode();
+        providerCustomClaim.put("id", customClaimId);
+
+        ObjectNode content = mapper.createObjectNode();
+        content.set(Constants.PROVIDER_CUSTOM_CLAIM, providerCustomClaim);
+        return content;
+    }
+
     private JsonNode fullLtiConfigMissing(String fieldToBlank) {
         ObjectNode result = (ObjectNode) fullLtiConfig();
         ObjectNode ltiConfig = (ObjectNode) result.path(Constants.DATA).path(Constants.LTI_CONFIGURATION);
@@ -275,6 +284,7 @@ class LtiLaunchServiceImplTest {
         stubValidUser();
         stubEnrolled(true);
         when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID)).thenReturn(fullLtiConfig());
+        when(transformUtility.callCiosContentReadAPi(COURSE_ID)).thenReturn(courseContentWithCustomClaim("602ba6d8-da5e-4ffa-8ed3-ffeab3211ebe"));
 
         SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
 
@@ -286,8 +296,39 @@ class LtiLaunchServiceImplTest {
         assertTrue(launchUrl.contains("target_link_uri="));
         assertTrue(launchUrl.contains("client_id=portal"));
         assertTrue(launchUrl.contains("lti_deployment_id=IGOT-TESTINGLTIVP-25344"));
-        assertTrue(launchUrl.contains("lti_message_hint=" + Constants.LTI_COURSE_LAUNCH_HINT_PREFIX + COURSE_ID)
-                || launchUrl.contains("lti_message_hint=courseLaunch%3A" + COURSE_ID));
+        // lti_message_hint is now a URI-encoded JSON of the course's own providerCustomClaim,
+        // plus partnerCode merged in - not courseId itself.
+        String decodedHint = java.net.URLDecoder.decode(
+                launchUrl.substring(launchUrl.indexOf("lti_message_hint=") + "lti_message_hint=".length()),
+                java.nio.charset.StandardCharsets.UTF_8);
+        assertTrue(decodedHint.contains("\"id\":\"602ba6d8-da5e-4ffa-8ed3-ffeab3211ebe\""));
+        assertTrue(decodedHint.contains("\"partnerCode\":\"IGOT-TESTINGLTIVP-25344\""));
+    }
+
+    @Test
+    @DisplayName("Course content read fails -> NOT_FOUND")
+    void buildCourseRedirectLink_courseContentReadFails_returnsNotFound() {
+        stubValidUser();
+        stubEnrolled(true);
+        when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID)).thenReturn(fullLtiConfig());
+        when(transformUtility.callCiosContentReadAPi(COURSE_ID)).thenThrow(new RuntimeException("boom"));
+
+        SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getResponseCode());
+    }
+
+    @Test
+    @DisplayName("Course content has no providerCustomClaim -> BAD_REQUEST")
+    void buildCourseRedirectLink_missingProviderCustomClaim_returnsBadRequest() {
+        stubValidUser();
+        stubEnrolled(true);
+        when(transformUtility.callContentPartnerReadByPartnerIdApi(PROVIDER_ID)).thenReturn(fullLtiConfig());
+        when(transformUtility.callCiosContentReadAPi(COURSE_ID)).thenReturn(mapper.createObjectNode());
+
+        SBApiResponse response = ltiLaunchService.buildCourseRedirectLink(PROVIDER_ID, COURSE_ID, TOKEN);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getResponseCode());
     }
 
     @Test
